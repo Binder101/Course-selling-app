@@ -82,7 +82,6 @@ function authenticateJWT(req, res, next) {
     return res.status(404).json({ message: "Authentication token missing" });
   }
   const decode = jwt.verify(token, secret);
-  //   console.log("Decode : ", decode);
   if (decode) {
     req.user = decode.username;
     next();
