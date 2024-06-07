@@ -147,6 +147,10 @@ app.post("/admin/courses", authenticateJWT, async (req, res) => {
   try {
     const newCourse = new COURSES(course);
     await newCourse.save();
+    console.log("Course : ", newCourse);
+    const author = await ADMINS.findOne({ username: req.user });
+    author.courses.push(newCourse.id);
+    await author.save();
     res.json({ message: "Course successfully added" });
   } catch (error) {
     console.error(error);
@@ -165,8 +169,6 @@ app.put("/admin/courses/:id", authenticateJWT, async (req, res) => {
       new: true,
       runValidators: true,
     });
-    // Throws error 500 when the id passed in the params is wrong.
-    // Fix this
     if (!course) return res.status(404).json({ message: "Course not found" });
     await course.save();
     res.json({ message: "Course successfully updated" });
@@ -193,5 +195,95 @@ mongoose.connect("mongodb://127.0.0.1:27017/COURSESAPP").then(() => {
     });
   } catch (error) {
     console.error("Failed to connect to Mongoose Database : ", error);
+  }
+});
+
+app.post("/user/signup", async (req, res) => {
+  const user = req.body;
+  try {
+    const existingUser = await USERS.findOne({ username: user.username });
+    if (existingUser)
+      res.status(409).json({
+        message: "Username already exists. Try using a different username",
+      });
+    else {
+      const newUser = new USERS(user);
+      await newUser.save();
+      const payload = {
+        username: user.username,
+        role: "user",
+      };
+      const token = jwt.sign(payload, secret, { expiresIn: "1H" });
+      res.json({ message: "USER successfully added", token: token });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/user/signin", async (req, res) => {
+  const user = req.headers;
+  try {
+    const existingUser = await USERS.findOne({
+      username: user.username,
+      password: user.password,
+    });
+    if (!existingUser)
+      res.status(409).json({
+        message: "Incorrect username or password",
+      });
+    else {
+      const payload = {
+        username: user.username,
+        role: "user",
+      };
+      const token = jwt.sign(payload, secret, { expiresIn: "1H" });
+      res.json({ message: "USER successfully logged in", token: token });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.get("/user/courses", authenticateJWT, async (req, res) => {
+  try {
+    const courses = await COURSES.find({ published: true });
+    res.json(courses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/user/purchaseCourse/:id", authenticateJWT, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const course = await COURSES.findById({ _id: id });
+    if (!course) {
+      return res.status(404).json("Course not found");
+    }
+    const purchasedCourse = course._id;
+    const loggedUser = req.user;
+    const user = await USERS.findOne({ username: loggedUser });
+    user.purchasedCourses.push(purchasedCourse);
+    await user.save();
+    res.json("Course successfully purchased");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.get("/user/purchasedCourses", authenticateJWT, async (req, res) => {
+  try {
+    const user = await USERS.findOne({ username: req.user }).populate(
+      "purchasedCourses"
+    );
+    res.json({ purchasedCourses: user.purchasedCourses || [] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
