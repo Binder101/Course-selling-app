@@ -211,7 +211,13 @@ app.get("/admin/courses", authenticateJWT, async (req, res) => {
 });
 
 app.get("/admin/check", authenticateJWT, async(req,res)=>{
-
+   const check = localStorage.getItem(token);
+   if(check){
+    res.json("GOOD");
+   }
+   else{
+    res.status(401).json("Authentication failed");
+   }
 })
 
 mongoose.connect("mongodb://localhost:27017/COURSESAPP").then(() => {
