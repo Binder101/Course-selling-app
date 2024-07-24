@@ -10,18 +10,40 @@ app.use(bodyParser.json());
 
 const secret = "Alp89@+&!jfid%hf00%8_$2f";
 
+function usernameLengthValidator(value) {
+  return value.length > 3 && value.length < 255;
+}
+function passwordLengthValidator(value) {
+  return value.length > 7 && value.length < 255;
+}
+function complexityValidator(value) {}
+
+const usernameValidator = [
+  {
+    validator: usernameLengthValidator,
+    message: "Username should not be less than 3 charcters",
+  },
+];
+
+const passwordValidator = [
+  {
+    validator: passwordLengthValidator,
+    message: "Password should not be less than 8 characters.",
+  },
+  /* {
+    validator: complexityValidator,
+    message: "Password is too simple.",
+  }, */
+];
+
 const adminSchema = new mongoose.Schema({
   username: {
     type: String,
-    require: true,
-    minLength: 3,
-    maxLength: 255,
+    validate: usernameValidator,
   },
   password: {
     type: String,
-    require: true,
-    minLength: 8,
-    maxLength: 255,
+    validate: passwordValidator,
   },
   courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "COURSES" }],
 });
@@ -29,15 +51,11 @@ const adminSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    require: true,
-    minLength: 3,
-    maxLength: 255,
+    validate: usernameValidator,
   },
   password: {
     type: String,
-    require: true,
-    minLength: 8,
-    maxLength: 255,
+    validate: passwordValidator,
   },
   purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "COURSES" }],
 });
@@ -103,16 +121,18 @@ app.post("/admin/signup", async (req, res) => {
     else {
       const newAdmin = new ADMINS(admin);
       await newAdmin.save();
+      const id = newAdmin._id;
       const payload = {
         username: admin.username,
         role: "admin",
       };
       const token = jwt.sign(payload, secret, { expiresIn: "1H" });
-      res.json({ message: "ADMIN successfully added", token: token });
+      res.json({ message: "ADMIN successfully added", id, token: token });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    const err = error;
+    res.status(500).json({ message: "Internal server error", Error: err });
   }
 });
 
@@ -133,11 +153,13 @@ app.post("/admin/signin", async (req, res) => {
         role: "admin",
       };
       const token = jwt.sign(payload, secret, { expiresIn: "1H" });
-      res.json({ message: "ADMIN successfully logged in", token: token });
+      const id = existingAdmin._id;
+      res.json({ message: "ADMIN successfully logged in", id, token: token });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    const err = error;
+    res.status(500).json({ message: "Internal server error", Error: err });
   }
 });
 
@@ -188,7 +210,11 @@ app.get("/admin/courses", authenticateJWT, async (req, res) => {
   }
 });
 
-mongoose.connect("mongodb://127.0.0.1:27017/COURSESAPP").then(() => {
+app.get("/admin/check", authenticateJWT, async(req,res)=>{
+
+})
+
+mongoose.connect("mongodb://localhost:27017/COURSESAPP").then(() => {
   try {
     app.listen(3000, () => {
       console.log("Server listening at port 3000");
