@@ -2,8 +2,22 @@ import React from "react";
 import Card from "@mui/material/Card";
 import { TextField, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
+import { useState, useEffect } from "react";
 
 function Signin() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function login() {
+    const response = fetch("http://localhost:3000/admin/signin", {
+      method: "POST",
+      mode: "cors",
+      body: JSON.stringify({ username, password }),
+      headers: { "Content-type": "application/json" },
+    });
+    const message = await response.json();
+    console.log(message);
+  }
   return (
     <div>
       <div
@@ -27,7 +41,7 @@ function Signin() {
           justifyContent: "Center",
         }}
       >
-        <Card variant="elevation" style={{ width: 400 }}>
+        <Card variant="elevation" style={{ width: 400, padding: 20 }}>
           <div
             style={{
               width: 380,
@@ -39,6 +53,9 @@ function Signin() {
               id="outlined-required"
               label="Username"
               fullWidth={true}
+              onChange={(e) => {
+                setUsername(e.target.value);
+              }}
             />
             <br />
             <br />
@@ -47,6 +64,9 @@ function Signin() {
               label="Password"
               fullWidth={true}
               type="password"
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
             />
             <br />
             <br />
@@ -61,6 +81,9 @@ function Signin() {
                   width: 380,
                   backgroundColor: "#1976d2",
                   color: "white",
+                }}
+                onClick={() => {
+                  login();
                 }}
               >
                 LOGIN
