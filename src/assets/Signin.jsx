@@ -3,19 +3,26 @@ import Card from "@mui/material/Card";
 import { TextField, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import { useState, useEffect } from "react";
+import{useNavigate} from "react-router-dom";
 
 function Signin() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   async function login() {
-    const response = fetch("http://localhost:3000/admin/signin", {
+    const response = await fetch("http://localhost:3000/admin/signin", {
       method: "POST",
       mode: "cors",
       body: JSON.stringify({ username, password }),
-      headers: { "Content-type": "application/json" },
+      headers: { "Content-type" : "application/json" ,
+      },
     });
     const message = await response.json();
+    if(response.status == 200){
+      const id = message.id;
+      navigate(`/admin/dashboard/${id}`);
+    }
     console.log(message);
   }
   return (
