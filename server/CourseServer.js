@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import jwt from "jsonwebtoken";
+import { isValidPassword } from "mongoose-custom-validators";
 
 const app = express();
 app.use(cors());
@@ -16,7 +17,6 @@ function usernameLengthValidator(value) {
 function passwordLengthValidator(value) {
   return value.length > 7 && value.length < 255;
 }
-function complexityValidator(value) {}
 
 const usernameValidator = [
   {
@@ -30,10 +30,10 @@ const passwordValidator = [
     validator: passwordLengthValidator,
     message: "Password should not be less than 8 characters.",
   },
-  /* {
-    validator: complexityValidator,
-    message: "Password is too simple.",
-  }, */
+  {
+    validator: isValidPassword,
+    message: "Password must contain 1 lowercase, 1 uppercase, 1 non-alphabetic and 1 number ",
+  },
 ];
 
 const adminSchema = new mongoose.Schema({
@@ -137,7 +137,7 @@ app.post("/admin/signup", async (req, res) => {
 });
 
 app.post("/admin/signin", async (req, res) => {
-  const admin = req.headers;
+  const admin = req.body;
   try {
     const existingAdmin = await ADMINS.findOne({
       username: admin.username,
