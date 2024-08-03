@@ -2,8 +2,30 @@ import React from "react";
 import Card from "@mui/material/Card";
 import { TextField, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
+import { useState, useEffect } from "react";
+import CustomizedSnackbar from "./CustomStyledComponents/CustomizedSnackBar";
 
 function Signup() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function sendData() {
+    const response = await fetch("http://localhost:3000/admin/signup", {
+      method: "POST",
+      mode: "cors",
+      body: JSON.stringify({ username, password }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const message = await response.json();
+    console.log(message);
+    const id = message.id;
+    const status = response.status;
+    if (status != 200) {
+      const err = message.Error.message;
+      alert(err);
+    }
+    localStorage.setItem("Token", message.token);
+  }
   return (
     <div>
       <div
@@ -19,7 +41,7 @@ function Signup() {
       <div
         style={{ display: "flex", justifyContent: "center", paddingBottom: 20 }}
       >
-        <Typography variant="h6">Lets get you signed in</Typography>
+        <Typography variant="h6">Lets get you signed up</Typography>
       </div>
       <div
         style={{
@@ -27,7 +49,7 @@ function Signup() {
           justifyContent: "Center",
         }}
       >
-        <Card variant="outlined" style={{ width: 400 }}>
+        <Card variant="elevation" style={{ width: 400, padding: 20 }}>
           <div
             style={{
               width: 380,
@@ -39,6 +61,10 @@ function Signup() {
               id="outlined-required"
               label="Username"
               fullWidth={true}
+              inputProps={{ minLength: 3, maxLength: 255 }}
+              onChange={(e) => {
+                setUsername(e.target.value);
+              }}
             />
             <br />
             <br />
@@ -47,6 +73,10 @@ function Signup() {
               label="Password"
               fullWidth={true}
               type="password"
+              inputProps={{ minLength: 8, maxLength: 255 }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
             />
             <br />
             <br />
@@ -61,6 +91,9 @@ function Signup() {
                   width: 380,
                   backgroundColor: "#1976d2",
                   color: "white",
+                }}
+                onClick={() => {
+                  sendData();
                 }}
               >
                 SIGNUP

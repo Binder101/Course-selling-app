@@ -6,7 +6,7 @@ export default function Header() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="h6" sx={{ flexGrow: 1 }}>
-            Coursera
+            ProLearner
           </Typography>
           <Button
             color="inherit"
