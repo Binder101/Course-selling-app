@@ -4,8 +4,10 @@ import { TextField, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import { useState, useEffect } from "react";
 import CustomizedSnackbar from "./CustomStyledComponents/CustomizedSnackBar";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -17,14 +19,15 @@ function Signup() {
       headers: { "Content-Type": "application/json" },
     });
     const message = await response.json();
-    console.log(message);
-    const id = message.id;
-    const status = response.status;
-    if (status != 200) {
+    localStorage.setItem("Token", message.token);
+    if (response.status == 200) {
+      console.log(message);
+      const id = message.id;
+      navigate(`/admin/dashboard/${id}`);
+    } else {
       const err = message.Error.message;
       alert(err);
     }
-    localStorage.setItem("Token", message.token);
   }
   return (
     <div>
