@@ -19,7 +19,7 @@ function Signup() {
       headers: { "Content-Type": "application/json" },
     });
     const message = await response.json();
-    localStorage.setItem("Token", message.token);
+    localStorage.setItem("token", message.token);
     if (response.status == 200) {
       console.log(message);
       const id = message.id;

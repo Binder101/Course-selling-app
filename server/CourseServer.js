@@ -10,7 +10,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const secret = "Alp89@+&!jfid%hf00%8_$2f";
-
 function usernameLengthValidator(value) {
   return value.length > 3 && value.length < 255;
 }
@@ -102,7 +101,7 @@ function authenticateJWT(req, res, next) {
   }
   const decode = jwt.verify(token, secret);
   if (decode) {
-    req.user = decode.username;
+    req.user = decode;
     next();
   } else {
     return res
@@ -127,7 +126,7 @@ app.post("/admin/signup", async (req, res) => {
         username: admin.username,
         role: "admin",
       };
-      const token = jwt.sign(payload, secret, { expiresIn: "1H" });
+      const token = jwt.sign(payload, secret, {expiresIn : "24H"});
       res.json({ message: "ADMIN successfully added", id, token: token });
     }
   } catch (error) {
@@ -153,7 +152,7 @@ app.post("/admin/signin", async (req, res) => {
         username: admin.username,
         role: "admin",
       };
-      const token = jwt.sign(payload, secret, { expiresIn: "1H" });
+      const token = jwt.sign(payload, secret, {expiresIn : "24H"});
       const id = existingAdmin._id;
       res.json({ message: "ADMIN successfully logged in", id, token: token });
     }
@@ -166,12 +165,12 @@ app.post("/admin/signin", async (req, res) => {
 
 app.post("/admin/courses", authenticateJWT, async (req, res) => {
   const course = req.body;
-  course.author = req.user;
+  course.author = req.user.username;
   try {
     const newCourse = new COURSES(course);
     await newCourse.save();
     console.log("Course : ", newCourse);
-    const author = await ADMINS.findOne({ username: req.user });
+    const author = await ADMINS.findOne({ username: req.user.username });
     author.courses.push(newCourse.id);
     await author.save();
     res.json({ message: "Course successfully added" });
@@ -212,7 +211,7 @@ app.get("/admin/courses", authenticateJWT, async (req, res) => {
 });
 
 app.get("/admin/check", authenticateJWT, async (req, res) => {
-  res.json("GOOD");
+  res.json(req.user);
 });
 
 mongoose.connect("mongodb://localhost:27017/COURSESAPP").then(() => {

@@ -21,12 +21,15 @@ function Signin() {
     const message = await response.json();
     if(response.status == 200){
       const id = message.id;
+      const token = message.token;
+      localStorage.setItem('token', token);
       navigate(`/admin/dashboard/${id}`);
+      window.location.reload();
     }
-    else if(response.status == 409){
+    else if(response.status != 200){
       alert("Invalid username or password");
-      setUsername();
-      setPassword();
+      setUsername("");
+      setPassword("");
       window.location.reload();
     }
     console.log(message);
